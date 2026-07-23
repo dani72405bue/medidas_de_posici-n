@@ -1,160 +1,170 @@
-"""
-Programa interactivo para medidas de posición: cuartiles, deciles y percentiles.
+"""Programa para calcular medidas de posición: cuartiles, percentiles y deciles."""
 
-Características:
-- Pide al usuario cuántos datos quiere introducir (mínimo 20).
-- Calcula la posición p = k*(n+1)/m (m = 4, 10, 100 según cuartil/decil/percentil).
-- Muestra la posición y el valor correspondiente. Regla especial:
-- Si la posición p es un entero y ese índice (1-based) es par, se promedia
-	el dato en esa posición con el siguiente (tal como pediste).
-- Si la posición no es entera, se interpola linealmente entre piso y techo.
-
-Uso: ejecutar el script y seguir las indicaciones.
-"""
-
-from math import floor, ceil
+# Importa la función sys para poder salir del programa de forma controlada.
+import sys
 
 
-def leer_numero(prompt):
-	while True:
-		s = input(prompt).strip()
-		try:
-			return float(s)
-		except ValueError:
-			print("Entrada no válida. Introduce un número válido.")
+# Define una función que calcula un percentil usando interpolación lineal.
+def calcular_percentil(datos, porcentaje):
+    # Ordena los datos de menor a mayor para poder ubicar correctamente el percentil.
+    datos_ordenados = sorted(datos)
+    # Obtiene la cantidad total de datos.
+    n = len(datos_ordenados)
+    # Si no hay datos, devuelve None para evitar errores.
+    if n == 0:
+        return None
+    # Si solo hay un dato, ese valor es el percentil solicitado.
+    if n == 1:
+        return datos_ordenados[0]
+    # Calcula la posición del percentil dentro de la lista ordenada.
+    posicion = (n - 1) * (porcentaje / 100)
+    # Redondea hacia abajo para obtener el índice inferior.
+    indice_inferior = int(posicion)
+    # Redondea hacia arriba para obtener el índice superior.
+    indice_superior = min(indice_inferior + 1, n - 1)
+    # Calcula la fracción entre ambos índices para interpolar.
+    fraccion = posicion - indice_inferior
+    # Si ambos índices son iguales, no hay interpolación y se devuelve ese valor.
+    if indice_inferior == indice_superior:
+        return datos_ordenados[indice_inferior]
+    # Devuelve el valor interpolado entre los dos datos cercanos.
+    return datos_ordenados[indice_inferior] + (datos_ordenados[indice_superior] - datos_ordenados[indice_inferior]) * fraccion
 
 
-def solicitar_datos():
-	print("Programa de medidas de posición (cuartiles, deciles, percentiles)")
-	while True:
-		try:
-			n = int(input("¿Cuántos datos vas a introducir? (mínimo 20): ").strip())
-			if n < 20:
-				print("Debes introducir al menos 20 datos.")
-				continue
-			break
-		except ValueError:
-			print("Introduce un entero válido.")
-
-	datos = []
-	print("Introduce los datos numéricos uno por uno (puedes usar decimales).")
-	i = 1
-	while len(datos) < n:
-		try:
-			v = input(f"Dato {i}: ").strip()
-			num = float(v)
-			datos.append(num)
-			i += 1
-		except ValueError:
-			print("Entrada no válida. Intenta de nuevo.")
-
-	datos.sort()
-	return datos
+# Define una función para mostrar los resultados de forma ordenada.
+def mostrar_resultados(titulo, resultados):
+    # Imprime el título del bloque de resultados.
+    print(f"\n{titulo}")
+    # Recorre cada clave y valor del diccionario para mostrarlos uno por uno.
+    for clave, valor in resultados.items():
+        # Imprime cada resultado con dos decimales para mejor lectura.
+        print(f"{clave}: {valor:.2f}")
 
 
-def posicion(k, m, n):
-	"""Calcula la posición p = k*(n+1)/m (1-based)."""
-	return (k * (n + 1)) / m
+# Muestra el propósito del programa al usuario.
+print("Bienvenido al programa de medidas de posición")
+print("Este programa calcula cuartiles, percentiles y deciles desde datos ingresados por ti.")
+print("Puedes ingresar hasta 150 datos.")
 
+while True:
+    # Solicita la cantidad de datos que el usuario desea ingresar.
+    try:
+        cantidad = int(input("\n¿Cuántos datos deseas ingresar? "))
+    except ValueError:
+        # Si el usuario no ingresa un número, termina el programa con un mensaje.
+        print("Debes ingresar un número entero.")
+        continue
 
-def valor_en_posicion(datos, p):
-	"""
-	Devuelve el valor correspondiente a la posición p (1-based) en lista ordenada `datos`.
+    # Valida que la cantidad de datos sea válida.
+    while cantidad < 1 or cantidad > 150:
+        # Muestra un mensaje si la cantidad está fuera del rango permitido.
+        print("La cantidad debe ser un número entre 1 y 150.")
+        try:
+            cantidad = int(input("¿Cuántos datos deseas ingresar? "))
+        except ValueError:
+            print("Debes ingresar un número entero.")
+            break
 
-	Reglas:
-	- Si p es entero y el índice es par, devuelve el promedio del elemento en p y el siguiente.
-	- Si p es entero y el índice es impar, devuelve el elemento en p.
-	- Si p no es entero, hace interpolación lineal entre floor(p) y ceil(p).
-	"""
-	n = len(datos)
-	if p <= 1:
-		return datos[0]
-	if p >= n:
-		return datos[-1]
+    if cantidad < 1 or cantidad > 150:
+        continue
 
-	if abs(p - round(p)) < 1e-12:  # p entero
-		idx = int(round(p))  # 1-based
-		if idx < n and idx % 2 == 0:
-			# índice par -> promedio con siguiente (regla del usuario)
-			a = datos[idx - 1]
-			b = datos[idx]
-			return (a + b) / 2.0
-		else:
-			return datos[idx - 1]
-	else:
-		f = floor(p)
-		c = ceil(p)
-		# manejar límites
-		if f < 1:
-			return datos[0]
-		if c > n:
-			return datos[-1]
-		frac = p - f
-		a = datos[f - 1]
-		b = datos[c - 1]
-		return a + frac * (b - a)
+    # Crea una lista vacía para guardar los datos ingresados.
+    datos = []
 
+    # Repite el proceso tantas veces como datos haya pedido el usuario.
+    for i in range(1, cantidad + 1):
+        # Solicita cada dato por separado.
+        while True:
+            try:
+                valor = float(input(f"Ingresa el dato {i}: "))
+                break
+            except ValueError:
+                # Si el dato no es numérico, avisa y vuelve a pedirlo.
+                print("Debes ingresar un número válido. Inténtalo de nuevo.")
+        # Agrega el valor ingresado a la lista.
+        datos.append(valor)
 
-def mostrar_resultado(tipo, k, datos):
-	n = len(datos)
-	m = {'C': 4, 'D': 10, 'P': 100}[tipo]
-	p = posicion(k, m, n)
-	val = valor_en_posicion(datos, p)
-	print(f"\nResultado para {'Cuartil' if tipo=='C' else 'Decil' if tipo=='D' else 'Percentil'} {k}:")
-	print(f"- Posición p = {p:.4f} (fórmula k*(n+1)/m, con n={n} y m={m})")
-	if abs(p - round(p)) < 1e-12 and int(round(p)) % 2 == 0 and int(round(p)) < n:
-		print("- Observación: p es entero y par -> se promedia con el siguiente valor (regla aplicada).")
-	elif abs(p - round(p)) < 1e-12:
-		print("- Observación: p es entero -> se toma el valor en esa posición.")
-	else:
-		print("- Observación: p no es entero -> se interpola entre los valores vecinos.")
-	print(f"- Valor obtenido: {val}")
+    # Muestra los datos originales para que el usuario los pueda revisar.
+    print("\nDatos ingresados:", datos)
 
+    # Ordena los datos para trabajar con ellos de forma organizada.
+    datos_ordenados = sorted(datos)
+    # Muestra los datos ya ordenados.
+    print("Datos ordenados:", datos_ordenados)
 
-def menu_interactivo(datos):
-	while True:
-		print("\nSelecciona una opción:")
-		print("  1) Calcular un Cuartil (Q)")
-		print("  2) Calcular un Decil (D)")
-		print("  3) Calcular un Percentil (P)")
-		print("  4) Mostrar todos los Cuartiles (Q1,Q2,Q3)")
-		print("  5) Salir")
-		opc = input("Opción: ").strip()
-		if opc == '1':
-			k = int(input("¿Qué cuartil? (1..3): ").strip())
-			if k < 1 or k > 3:
-				print("Cuartil inválido.")
-				continue
-			mostrar_resultado('C', k, datos)
-		elif opc == '2':
-			k = int(input("¿Qué decil? (1..9): ").strip())
-			if k < 1 or k > 9:
-				print("Decil inválido.")
-				continue
-			mostrar_resultado('D', k, datos)
-		elif opc == '3':
-			k = int(input("¿Qué percentil? (1..99): ").strip())
-			if k < 1 or k > 99:
-				print("Percentil inválido.")
-				continue
-			mostrar_resultado('P', k, datos)
-		elif opc == '4':
-			for k in (1, 2, 3):
-				mostrar_resultado('C', k, datos)
-		elif opc == '5':
-			print("Saliendo.")
-			break
-		else:
-			print("Opción no válida. Intenta de nuevo.")
+    # Muestra las opciones disponibles para que el usuario elija.
+    print("\n¿Qué deseas calcular?")
+    print("1. Cuartiles")
+    print("2. Percentiles")
+    print("3. Deciles")
+    print("4. Todo")
+    print("5. Salir")
 
+    # Solicita la opción elegida por el usuario.
+    try:
+        opcion = int(input("Elige una opción (1-5): "))
+    except ValueError:
+        print("Debes ingresar un número entero.")
+        continue
 
-def main():
-	datos = solicitar_datos()
-	print(f"\nHas introducido {len(datos)} datos. Lista ordenada:")
-	print(datos)
-	menu_interactivo(datos)
+    # Si la opción elegida es cuartiles, calcula Q1, Q2 y Q3.
+    if opcion == 1:
+        resultados = {
+            "Q1": calcular_percentil(datos_ordenados, 25),
+            "Q2": calcular_percentil(datos_ordenados, 50),
+            "Q3": calcular_percentil(datos_ordenados, 75),
+        }
+        mostrar_resultados("Resultados de cuartiles", resultados)
 
+    # Si la opción elegida es percentiles, solicita los percentiles que quiere calcular.
+    elif opcion == 2:
+        cantidad_percentiles = int(input("¿Cuántos percentiles quieres calcular? "))
+        resultados = {}
+        for i in range(1, cantidad_percentiles + 1):
+            try:
+                porcentaje = float(input(f"Ingresa el percentil {i} (por ejemplo 20 para P20): "))
+            except ValueError:
+                print("Debes ingresar un número válido.")
+                break
+            resultados[f"P{int(porcentaje)}"] = calcular_percentil(datos_ordenados, porcentaje)
+        mostrar_resultados("Resultados de percentiles", resultados)
 
-if __name__ == '__main__':
-	main()
+    # Si la opción elegida es deciles, solicita los deciles que quiere calcular.
+    elif opcion == 3:
+        cantidad_deciles = int(input("¿Cuántos deciles quieres calcular? "))
+        resultados = {}
+        for i in range(1, cantidad_deciles + 1):
+            try:
+                decil = float(input(f"Ingresa el decil {i} (por ejemplo 2 para D2): "))
+            except ValueError:
+                print("Debes ingresar un número válido.")
+                break
+            resultados[f"D{int(decil)}"] = calcular_percentil(datos_ordenados, decil * 10)
+        mostrar_resultados("Resultados de deciles", resultados)
 
+    # Si la opción elegida es 4, calcula cuartiles, percentiles y deciles juntos.
+    elif opcion == 4:
+        cuartiles = {
+            "Q1": calcular_percentil(datos_ordenados, 25),
+            "Q2": calcular_percentil(datos_ordenados, 50),
+            "Q3": calcular_percentil(datos_ordenados, 75),
+        }
+        mostrar_resultados("Resultados de cuartiles", cuartiles)
+
+        percentiles = {}
+        for valor in [10, 20, 30, 40, 50, 60, 70, 80, 90]:
+            percentiles[f"P{valor}"] = calcular_percentil(datos_ordenados, valor)
+        mostrar_resultados("Resultados de percentiles", percentiles)
+
+        deciles = {}
+        for valor in range(1, 10):
+            deciles[f"D{valor}"] = calcular_percentil(datos_ordenados, valor * 10)
+        mostrar_resultados("Resultados de deciles", deciles)
+
+    elif opcion == 5:
+        print("Gracias por usar el programa.")
+        break
+
+    # Si la opción no es válida, muestra un mensaje de error.
+    else:
+        print("Opción no válida.")
