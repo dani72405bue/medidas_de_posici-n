@@ -1,4 +1,4 @@
-# Medidas_de_posici-n
+# Medidas_de_posición
 programa parar la materia de estadistica 2026
 
 # Funcionamiento del programa 
