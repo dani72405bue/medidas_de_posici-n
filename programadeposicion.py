@@ -1,39 +1,22 @@
-"""Programa para calcular medidas de posición: cuartiles, percentiles y deciles."""
-
-# Importa la función sys para poder salir del programa de forma controlada.
+"""Programa para calcular medidas de posición: cuartiles, percentiles y deciles.""" 
 import sys
 
-
-# Define una función que calcula un percentil usando interpolación lineal.
 def calcular_percentil(datos, porcentaje):
-    # Ordena los datos de menor a mayor para poder ubicar correctamente el percentil.
     datos_ordenados = sorted(datos)
-    # Obtiene la cantidad total de datos.
     n = len(datos_ordenados)
-    # Si no hay datos, devuelve None para evitar errores.
     if n == 0:
         return None
-    # Si solo hay un dato, ese valor es el percentil solicitado.
     if n == 1:
         return datos_ordenados[0]
-    # Calcula la posición del percentil dentro de la lista ordenada.
     posicion = (n - 1) * (porcentaje / 100)
-    # Redondea hacia abajo para obtener el índice inferior.
     indice_inferior = int(posicion)
-    # Redondea hacia arriba para obtener el índice superior.
     indice_superior = min(indice_inferior + 1, n - 1)
-    # Calcula la fracción entre ambos índices para interpolar.
     fraccion = posicion - indice_inferior
-    # Si ambos índices son iguales, no hay interpolación y se devuelve ese valor.
     if indice_inferior == indice_superior:
         return datos_ordenados[indice_inferior]
-    # Devuelve el valor interpolado entre los dos datos cercanos.
     return datos_ordenados[indice_inferior] + (datos_ordenados[indice_superior] - datos_ordenados[indice_inferior]) * fraccion
 
-
-# Define una función para mostrar los resultados de forma ordenada.
 def mostrar_resultados(titulo, resultados):
-    # Imprime el título del bloque de resultados.
     print(f"\n{titulo}")
     # Recorre cada clave y valor del diccionario para mostrarlos uno por uno.
     for clave, valor in resultados.items():
@@ -47,7 +30,6 @@ print("Este programa calcula cuartiles, percentiles y deciles desde datos ingres
 print("Puedes ingresar hasta 150 datos.")
 
 while True:
-    # Solicita la cantidad de datos que el usuario desea ingresar.
     try:
         cantidad = int(input("\n¿Cuántos datos deseas ingresar? "))
     except ValueError:
