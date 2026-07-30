@@ -1,5 +1,7 @@
-"""Programa para calcular medidas de posición: cuartiles, percentiles y deciles.""" 
+"""Programa para calcular medidas de posición: cuartiles, percentiles y deciles."""
+import re
 import sys
+
 
 def calcular_percentil(datos, porcentaje):
     datos_ordenados = sorted(datos)
@@ -22,6 +24,30 @@ def mostrar_resultados(titulo, resultados):
     for clave, valor in resultados.items():
         # Imprime cada resultado con dos decimales para mejor lectura.
         print(f"{clave}: {valor:.2f}")
+
+
+def leer_datos(cantidad):
+    while True:
+        entrada = input(
+            f"Ingresa los {cantidad} datos en una sola línea (separados por comas o espacios): "
+        ).strip()
+
+        if not entrada:
+            print("No ingresaste ningún dato.")
+            continue
+
+        valores = re.split(r"[\s,]+", entrada)
+        try:
+            datos = [float(valor) for valor in valores if valor]
+        except ValueError:
+            print("Debes ingresar números válidos.")
+            continue
+
+        if len(datos) != cantidad:
+            print(f"Debes ingresar exactamente {cantidad} datos.")
+            continue
+
+        return datos
 
 
 # Muestra el propósito del programa al usuario.
@@ -50,21 +76,8 @@ while True:
     if cantidad < 1 or cantidad > 150:
         continue
 
-    # Crea una lista vacía para guardar los datos ingresados.
-    datos = []
-
-    # Repite el proceso tantas veces como datos haya pedido el usuario.
-    for i in range(1, cantidad + 1):
-        # Solicita cada dato por separado.
-        while True:
-            try:
-                valor = float(input(f"Ingresa el dato {i}: "))
-                break
-            except ValueError:
-                # Si el dato no es numérico, avisa y vuelve a pedirlo.
-                print("Debes ingresar un número válido. Inténtalo de nuevo.")
-        # Agrega el valor ingresado a la lista.
-        datos.append(valor)
+    # Solicita todos los datos de una vez, separados por comas o espacios.
+    datos = leer_datos(cantidad)
 
     # Muestra los datos originales para que el usuario los pueda revisar.
     print("\nDatos ingresados:", datos)
